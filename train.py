@@ -19,7 +19,7 @@ from utils.utils import *
 from utils.prune_utils import *
 import test
 
-def train():
+def train(dataset = 'cifar10',root = './root'):
     start_epoch = 0
     epochs = opt.epochs
     batch_size = opt.batch_size
@@ -32,9 +32,8 @@ def train():
 
     # Data
     nw = min([os.cpu_count(), batch_size if batch_size > 1 else 0, 8])  # number of workers
-    trainloader = cifar10_train_dataset(batch_size=batch_size,nw=nw)
-    testloader = cifar10_test_dataset(batch_size=batch_size, nw=nw)
-    classs = cifar10_class()
+    trainloader = globals()[dataset+'_train_dataset'](root=root, batch_size=batch_size, nw=nw)
+    testloader = globals()[dataset+'_test_dataset'](root=root, batch_size=batch_size, nw=nw)
 
     # Model    
     model_name = opt.model_name
@@ -241,7 +240,8 @@ if __name__ == '__main__':
                         help='train with channel sparsity regularization')
     parser.add_argument('--s', type=float, default=0.001, help='scale sparse rate')
     parser.add_argument('--from-scratch', action='store_true', help='training form scratch, not using pretrained weights')
-
+    parser.add_argument('--dataset', type=str, default='cifar10',help='training dataset (default: cifar10)')
+    parser.add_argument('--root', type=str, default='./data',help='root path of training dataset (default: ./data)')
     opt = parser.parse_args()
     print(opt)
 
@@ -253,4 +253,4 @@ if __name__ == '__main__':
     except:
         tb_writer = None
 
-    train()
+    train(opt.dataset,opt.root)
