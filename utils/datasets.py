@@ -76,7 +76,7 @@ def imagenet_train(root='./data', batch_size=128, nw=2):
                             std = [ 0.229, 0.224, 0.225 ]),
     ])
 
-    traindir = os.path.join(root, 'train')
+    traindir = os.path.join(root, 'ILSVRC2012_img_train')
     train = torchvision.datasets.ImageFolder(traindir, transform)
     train_loader = torch.utils.data.DataLoader(
         train, batch_size=batch_size, shuffle=True, num_workers=nw)
@@ -90,7 +90,7 @@ def imagenet_test(root='./data', batch_size=128, nw=2):
         transforms.Normalize(mean = [ 0.485, 0.456, 0.406 ],
                             std = [ 0.229, 0.224, 0.225 ]),
     ])
-    testdir = os.path.join(root, 'val')
+    testdir = os.path.join(root, 'ILSVRC2012_img_val')
     test = torchvision.datasets.ImageFolder(testdir, transform)
     test_loader = torch.utils.data.DataLoader(
         test, batch_size=batch_size, shuffle=True, num_workers=nw)
