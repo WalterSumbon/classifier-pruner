@@ -44,11 +44,11 @@ def train(dataset = 'cifar10',root = './root'):
         cfg = torch.load(opt.cfg)['cfg']
 
     if checkpoint == '':
-        model = globals()[model_name](cfg)
+        model = globals()[model_name](cfg, dataset)
         init_params(model)
     else:
         if checkpoint.endswith('.pth'): # only load weights from file
-            model = globals()[model_name](cfg)
+            model = globals()[model_name](cfg, dataset)
             model.load_state_dict(torch.load(checkpoint)['model'])
         else:
             assert False, "checkpoint file must end with '.pth', so '%s' does not meet the requirements!!!"%checkpoint
