@@ -408,40 +408,40 @@ class ResNetCFG:
         return cfg
         
 _num_classes = {
-    'CIFAR10' : 10,
-    'CIFAR100' : 100,
-    'ImageNet' : 1000
+    'cifar10' : 10,
+    'cifar100' : 100,
+    'imagenet' : 1000
 }
 
-def ResNet18(cfg=None, dataset = 'CIFAR10'):
+def ResNet18(cfg=None, dataset = 'cifar10'):
     if cfg is None:
         # return ResNet(BasicBlock, [2, 2, 2, 2])
         return PrunableResNet(PrunableBasicBlock, [2, 2, 2, 2], cfg=ResNetCFG().cfg18, num_classes = _num_classes[dataset])
     else:
         return PrunableResNet(PrunableBasicBlock, [2, 2, 2, 2], cfg=cfg, num_classes = _num_classes[dataset])
 
-def ResNet34(cfg=None, dataset = 'CIFAR10'):
+def ResNet34(cfg=None, dataset = 'cifar10'):
     if cfg is None:
         # return ResNet(BasicBlock, [3, 4, 6, 3])
         return PrunableResNet(PrunableBasicBlock, [3, 4, 6, 3], cfg=ResNetCFG().cfg34, num_classes = _num_classes[dataset])
     else:
         return PrunableResNet(PrunableBasicBlock, [3, 4, 6, 3], cfg=cfg, num_classes = _num_classes[dataset])
     
-def ResNet50(cfg=None, dataset = 'CIFAR10'):
+def ResNet50(cfg=None, dataset = 'cifar10'):
     if cfg is None:
         # return ResNet(Bottleneck, [3, 4, 6, 3])
         return PrunableResNet(PrunableBottleneck, [3, 4, 6, 3], cfg=ResNetCFG().cfg50, num_classes = _num_classes[dataset])
     else:
         return PrunableResNet(PrunableBottleneck, [3, 4, 6, 3], cfg=cfg, num_classes = _num_classes[dataset])
     
-def ResNet101(cfg=None, dataset = 'CIFAR10'):
+def ResNet101(cfg=None, dataset = 'cifar10'):
     if cfg is None:
         # return ResNet(Bottleneck, [3, 4, 23, 3])
         return PrunableResNet(PrunableBottleneck, [3, 4, 23, 3], cfg=ResNetCFG().cfg101, num_classes = _num_classes[dataset])
     else:
         return PrunableResNet(PrunableBottleneck, [3, 4, 23, 3], cfg=cfg, num_classes = _num_classes[dataset])
 
-def ResNet152(cfg=None, dataset = 'CIFAR10'):
+def ResNet152(cfg=None, dataset = 'cifar10'):
     if cfg is None:
         # return ResNet(Bottleneck, [3, 8, 36, 3])
         return PrunableResNet(PrunableBottleneck, [3, 8, 36, 3], cfg=ResNetCFG().cfg152, num_classes = _num_classes[dataset])

@@ -67,7 +67,7 @@ def cifar100_test_dataset(root='./data', batch_size=128, nw=2):
 def cifar100_class():
     pass
 
-def imagenet_train(root='./data', batch_size=128, nw=2):
+def imagenet_train_dataset(root='./data', batch_size=128, nw=2):
     transform = transforms.Compose([
         transforms.RandomSizedCrop(224),
         transforms.RandomHorizontalFlip(),
@@ -82,7 +82,7 @@ def imagenet_train(root='./data', batch_size=128, nw=2):
         train, batch_size=batch_size, shuffle=True, num_workers=nw)
     return train_loader
 
-def imagenet_test(root='./data', batch_size=128, nw=2):
+def imagenet_test_dataset(root='./data', batch_size=128, nw=2):
     transform = transforms.Compose([
         transforms.RandomSizedCrop(224),
         transforms.RandomHorizontalFlip(),

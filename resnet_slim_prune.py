@@ -29,6 +29,7 @@ if __name__ == '__main__':
     parser.add_argument('--percent', type=float, default=0.5, help='channel prune percent')
     parser.add_argument('--layer-keep', type=float, default=0.01, help='channel keep percent per layer')
     parser.add_argument('--img-size', type=int, default=32, help='inference size (pixels)')
+    parser.add_argument('--dataset', type=str, default='cifar10',help='training dataset (default: cifar10)')
 
     # opt = parser.parse_args(args=[])
     opt = parser.parse_args()
@@ -41,9 +42,10 @@ if __name__ == '__main__':
     # get original model
     checkpoint = opt.checkpoint
     model_name = opt.model_name
+    dataset = opt.dataset
     assert os.path.isfile(checkpoint), 'Error: no %s file found!'%checkpoint
     if checkpoint.endswith('.pth'): # only load weights from file
-        model = globals()[opt.model_name]()
+        model = globals()[opt.model_name](dataset = dataset)
         model.load_state_dict(torch.load(checkpoint)['model'])
     else: # load network architecture and weights from file 
         model = torch.load(checkpoint)
@@ -52,7 +54,7 @@ if __name__ == '__main__':
     model_cfg = resnet_cfg.get_cfg(model)
         
     if isinstance(model, ResNet): # convert ResNet model to PrunableResNet model
-        prunable_model = globals()[opt.model_name](model_cfg)
+        prunable_model = globals()[opt.model_name](model_cfg, dataset)
         
         for src,dest in zip(model.parameters(),prunable_model.parameters()):
             dest.data.copy_(src.data)
@@ -207,7 +209,7 @@ if __name__ == '__main__':
     
     pruned_model_cfg = resnet_cfg.convert_list_to_cfg(cfg_remain) # 剪枝后模型的cfg
     print(pruned_model_cfg)
-    pruned_model = globals()[opt.model_name](pruned_model_cfg) # 通过cfg生成剪枝后的模型
+    pruned_model = globals()[opt.model_name](pruned_model_cfg, dataset) # 通过cfg生成剪枝后的模型
     
     pruned_model = pruned_model.to(device)
     
