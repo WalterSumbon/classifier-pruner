@@ -145,8 +145,8 @@ def train(dataset = 'cifar10',root = './root'):
         correct = 0
         total = 0
         print(('\n' + '%10s' * 6) % ('Epoch', 'gpu_mem', 'Loss', 'correct', 'total', 'Acc'))
-        pbar = tqdm(enumerate(trainloader), total=len(trainloader))  # progress bar
-        for batch_idx, (inputs, targets) in pbar:
+        # pbar = tqdm(enumerate(trainloader), total=len(trainloader))  # progress bar
+        for batch_idx, (inputs, targets) in enumerate(trainloader):
             inputs, targets = inputs.to(device), targets.to(device)
             optimizer.zero_grad()
             outputs = model(inputs)
@@ -165,8 +165,10 @@ def train(dataset = 'cifar10',root = './root'):
             correct += predicted.eq(targets).sum().item()
 
             mem = torch.cuda.memory_cached() / 1E9 if torch.cuda.is_available() else 0  # (GB)
+            
             s = ('%10s' * 2 + '%10.3g' * 4) % ('%g/%g' % (epoch, epochs - 1), '%.3gG' % mem, train_loss/(batch_idx+1), correct, total, 100.*correct/total)
-            pbar.set_description(s)
+            print(s)
+            #pbar.set_description(s)
 
         # test
         test_loss, test_correct, test_total = test.test(model=model, testloader=testloader)
