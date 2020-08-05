@@ -13,7 +13,7 @@ model=ResNet18
 dataset=imagenet
 root=/home/cs/bhuagroup/imagenet/
 epochs=5
-batch_size=128
+batch_size=32
 s=0.001
 prune_mode=resnet_slim_prune.py
 prune=1
@@ -78,6 +78,7 @@ do
         --model-name ${model} \
         -ckpt ${prefix}/sp/checkpoint/last.pth \
         --saved-dir ${prefix}/percent-${percent}/pruned_model \
+        --dataset ${dataset} \
         --percent ${percent}
     echo "################ end prune"
 

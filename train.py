@@ -253,4 +253,6 @@ if __name__ == '__main__':
     except:
         tb_writer = None
 
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
     train(opt.dataset,opt.root)

@@ -78,6 +78,7 @@ do
         --model-name ${model} \
         -ckpt ${prefix}/sp/checkpoint/last.pth \
         --saved-dir ${prefix}/percent-${percent}/pruned_model \
+        --dataset ${dataset} \
         --percent ${percent}
     echo "################ end prune"
 

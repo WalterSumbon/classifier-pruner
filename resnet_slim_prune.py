@@ -36,7 +36,8 @@ if __name__ == '__main__':
     
     print(opt)
     
-
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     
     # get original model

@@ -174,11 +174,22 @@ class ResNet(nn.Module):
         out = out.view(out.size(0), -1)
         out = self.linear(out)
         return out
-    
+
+_num_classes = {
+    'cifar10' : 10,
+    'cifar100' : 100,
+    'imagenet' : 1000
+}
+
 class PrunableResNet(nn.Module):
-    def __init__(self, block, num_blocks, cfg=None, num_classes=10):
+    def __init__(self, block, num_blocks, cfg=None, dataset='cifar10'):
+        print("[dataset = %s]"%(dataset))
         super(PrunableResNet, self).__init__()
         assert not(cfg is None)
+
+        self.dataset = dataset
+        self.num_classes = _num_classes[dataset]
+
         self.cfg = cfg
         
         self.dependency = []
@@ -186,9 +197,17 @@ class PrunableResNet(nn.Module):
             
         self.in_planes = cfg[0][0]
 
-        self.conv1 = nn.Conv2d(3, cfg[0][0], kernel_size=3, stride=1, padding=1, bias=False)
+        if dataset == 'imagenet':
+            self.conv1 = nn.Conv2d(3, cfg[0][0], kernel_size=7, stride=2, padding=3, bias=False)
+        else:
+            self.conv1 = nn.Conv2d(3, cfg[0][0], kernel_size=3, stride=1, padding=1, bias=False)
         self.bn1 = nn.BatchNorm2d(cfg[0][0])
         
+        if dataset == 'imagenet':
+            self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
+        else:
+            self.maxpool = nn.Sequential()
+
         self.dependency_list.extend([{'conv':self.conv1, 'bn':self.bn1}])
         
         if cfg[0][0] != cfg[1][-1]: # 当第一个卷积层的filter数目不同于第一个block的最后一个卷积层的filter数目时
@@ -214,7 +233,12 @@ class PrunableResNet(nn.Module):
         end = start + num_blocks[3]
         self.layer4 = self._make_layer(block, cfg[start:end], num_blocks[3], stride=2)
         
-        self.linear = nn.Linear(cfg[-1][-1], num_classes)
+        if dataset == 'imagenet':
+            self.avgpool = nn.AvgPool2d(7)
+        else:
+            self.avgpool = nn.AvgPool2d(4)
+        
+        self.linear = nn.Linear(cfg[-1][-1], self.num_classes)
         
         # for i in range(len(self.dependency)):
         #     for j in range(len(self.dependency[i])):
@@ -245,11 +269,12 @@ class PrunableResNet(nn.Module):
 
     def forward(self, x):
         out = F.relu(self.bn1(self.conv1(x)))
+        out = self.maxpool(out)
         out = self.layer1(out)
         out = self.layer2(out)
         out = self.layer3(out)
         out = self.layer4(out)
-        out = F.avg_pool2d(out, 4)
+        out = self.avgpool(out)
         out = out.view(out.size(0), -1)
         out = self.linear(out)
         return out
@@ -406,47 +431,41 @@ class ResNetCFG:
                     block.clear()
                     count = 0
         return cfg
-        
-_num_classes = {
-    'cifar10' : 10,
-    'cifar100' : 100,
-    'imagenet' : 1000
-}
 
 def ResNet18(cfg=None, dataset = 'cifar10'):
     if cfg is None:
         # return ResNet(BasicBlock, [2, 2, 2, 2])
-        return PrunableResNet(PrunableBasicBlock, [2, 2, 2, 2], cfg=ResNetCFG().cfg18, num_classes = _num_classes[dataset])
+        return PrunableResNet(PrunableBasicBlock, [2, 2, 2, 2], cfg=ResNetCFG().cfg18, dataset = dataset)
     else:
-        return PrunableResNet(PrunableBasicBlock, [2, 2, 2, 2], cfg=cfg, num_classes = _num_classes[dataset])
+        return PrunableResNet(PrunableBasicBlock, [2, 2, 2, 2], cfg=cfg, dataset = dataset)
 
 def ResNet34(cfg=None, dataset = 'cifar10'):
     if cfg is None:
         # return ResNet(BasicBlock, [3, 4, 6, 3])
-        return PrunableResNet(PrunableBasicBlock, [3, 4, 6, 3], cfg=ResNetCFG().cfg34, num_classes = _num_classes[dataset])
+        return PrunableResNet(PrunableBasicBlock, [3, 4, 6, 3], cfg=ResNetCFG().cfg34, dataset = dataset)
     else:
-        return PrunableResNet(PrunableBasicBlock, [3, 4, 6, 3], cfg=cfg, num_classes = _num_classes[dataset])
+        return PrunableResNet(PrunableBasicBlock, [3, 4, 6, 3], cfg=cfg, dataset = dataset)
     
 def ResNet50(cfg=None, dataset = 'cifar10'):
     if cfg is None:
         # return ResNet(Bottleneck, [3, 4, 6, 3])
-        return PrunableResNet(PrunableBottleneck, [3, 4, 6, 3], cfg=ResNetCFG().cfg50, num_classes = _num_classes[dataset])
+        return PrunableResNet(PrunableBottleneck, [3, 4, 6, 3], cfg=ResNetCFG().cfg50, dataset = dataset)
     else:
-        return PrunableResNet(PrunableBottleneck, [3, 4, 6, 3], cfg=cfg, num_classes = _num_classes[dataset])
+        return PrunableResNet(PrunableBottleneck, [3, 4, 6, 3], cfg=cfg, dataset = dataset)
     
 def ResNet101(cfg=None, dataset = 'cifar10'):
     if cfg is None:
         # return ResNet(Bottleneck, [3, 4, 23, 3])
-        return PrunableResNet(PrunableBottleneck, [3, 4, 23, 3], cfg=ResNetCFG().cfg101, num_classes = _num_classes[dataset])
+        return PrunableResNet(PrunableBottleneck, [3, 4, 23, 3], cfg=ResNetCFG().cfg101, dataset = dataset)
     else:
-        return PrunableResNet(PrunableBottleneck, [3, 4, 23, 3], cfg=cfg, num_classes = _num_classes[dataset])
+        return PrunableResNet(PrunableBottleneck, [3, 4, 23, 3], cfg=cfg, dataset = dataset)
 
 def ResNet152(cfg=None, dataset = 'cifar10'):
     if cfg is None:
         # return ResNet(Bottleneck, [3, 8, 36, 3])
-        return PrunableResNet(PrunableBottleneck, [3, 8, 36, 3], cfg=ResNetCFG().cfg152, num_classes = _num_classes[dataset])
+        return PrunableResNet(PrunableBottleneck, [3, 8, 36, 3], cfg=ResNetCFG().cfg152, dataset = dataset)
     else:
-        return PrunableResNet(PrunableBottleneck, [3, 8, 36, 3], cfg=cfg, num_classes = _num_classes[dataset])
+        return PrunableResNet(PrunableBottleneck, [3, 8, 36, 3], cfg=cfg, dataset = dataset)
 
 def test():
     net = ResNet101()
