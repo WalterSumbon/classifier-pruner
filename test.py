@@ -53,8 +53,8 @@ def test(model=None, testloader=None, batch_size=64):
     total = 0
     with torch.no_grad():
         print(('\n' + '%10s' * 4) % ('test_loss', 'correct', 'total', 'Acc'))
-        pbar = tqdm(enumerate(testloader), total=len(testloader))  # progress bar
-        for batch_idx, (inputs, targets) in pbar:
+        #pbar = tqdm(enumerate(testloader), total=len(testloader))  # progress bar
+        for batch_idx, (inputs, targets) in enumerate(testloader):
             inputs, targets = inputs.to(device), targets.to(device)
             outputs = model(inputs)
             loss = criterion(outputs, targets)
@@ -65,7 +65,8 @@ def test(model=None, testloader=None, batch_size=64):
             correct += predicted.eq(targets).sum().item()
 
             s = ('%10.3g' * 4) % (test_loss/(batch_idx+1), correct, total, 100.*correct/total)
-            pbar.set_description(s)
+            print(s)
+            #pbar.set_description(s)
 
     return test_loss, correct, total
 
