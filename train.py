@@ -19,7 +19,7 @@ from utils.utils import *
 from utils.prune_utils import *
 import test
 
-def train(dataset = 'cifar10',root = './root'):
+def train(dataset = 'cifar10',root = './data'):
     start_epoch = 0
     epochs = opt.epochs
     batch_size = opt.batch_size
@@ -36,7 +36,7 @@ def train(dataset = 'cifar10',root = './root'):
     testloader = globals()[dataset+'_test_dataset'](root=root, batch_size=batch_size, nw=nw)
 
     # Model    
-    model_name = opt.model_name
+    model_name = 'ResNet%d_'%opt.layers + opt.dataset
     checkpoint = opt.checkpoint
 
     cfg = None
@@ -44,11 +44,11 @@ def train(dataset = 'cifar10',root = './root'):
         cfg = torch.load(opt.cfg)['cfg']
 
     if checkpoint == '':
-        model = globals()[model_name](cfg, dataset)
+        model = PrunableResNet(opt.layers, dataset, cfg)
         init_params(model)
     else:
         if checkpoint.endswith('.pth'): # only load weights from file
-            model = globals()[model_name](cfg, dataset)
+            model = PrunableResNet(opt.layers, dataset, cfg)
             model.load_state_dict(torch.load(checkpoint)['model'])
         else:
             assert False, "checkpoint file must end with '.pth', so '%s' does not meet the requirements!!!"%checkpoint
@@ -90,7 +90,7 @@ def train(dataset = 'cifar10',root = './root'):
     else:
         if opt.prune == 0:
             module_list, _ = model.get_module_list()
-            resnet_cfg = ResNetCFG()
+            resnet_cfg = ResNetCFG_imagenet()
             prune_idx = resnet_cfg.get_prune_idx(model)
 
             bn_list = []
@@ -224,7 +224,7 @@ def train(dataset = 'cifar10',root = './root'):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('--model-name', type=str, default='ResNet18', help='the function to generate model')
+    parser.add_argument('--layers', type=int, default=18, help='the number of layers')  # new option
     parser.add_argument('--cfg', type=str, default='', help='the config file to create model')
     parser.add_argument('--checkpoint', '-ckpt', default='', help='checkpoint file path')
     parser.add_argument('--checkpoint-dir', '-ckpt-dir', default='checkpoint', help='checkpoint directory')

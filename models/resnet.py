@@ -178,17 +178,15 @@ class ResNet(nn.Module):
 _num_classes = {
     'cifar10' : 10,
     'cifar100' : 100,
-    'imagenet' : 1000
 }
 
-class PrunableResNet(nn.Module):
-    def __init__(self, block, num_blocks, cfg=None, dataset='cifar10'):
-        print("[dataset = %s]"%(dataset))
-        super(PrunableResNet, self).__init__()
+class PrunableResNet_imagenet(nn.Module):
+    def __init__(self, block, num_blocks, cfg=None):
+        print("[dataset = imagenet]")
+        super(PrunableResNet_imagenet, self).__init__()
         assert not(cfg is None)
 
-        self.dataset = dataset
-        self.num_classes = _num_classes[dataset]
+        self.num_classes = 1000
 
         self.cfg = cfg
         
@@ -197,16 +195,11 @@ class PrunableResNet(nn.Module):
             
         self.in_planes = cfg[0][0]
 
-        if dataset == 'imagenet':
-            self.conv1 = nn.Conv2d(3, cfg[0][0], kernel_size=7, stride=2, padding=3, bias=False)
-        else:
-            self.conv1 = nn.Conv2d(3, cfg[0][0], kernel_size=3, stride=1, padding=1, bias=False)
+        self.conv1 = nn.Conv2d(3, cfg[0][0], kernel_size=7, stride=2, padding=3, bias=False)
+
         self.bn1 = nn.BatchNorm2d(cfg[0][0])
         
-        if dataset == 'imagenet':
-            self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
-        else:
-            self.maxpool = nn.Sequential()
+        self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
 
         self.dependency_list.extend([{'conv':self.conv1, 'bn':self.bn1}])
         
@@ -233,10 +226,7 @@ class PrunableResNet(nn.Module):
         end = start + num_blocks[3]
         self.layer4 = self._make_layer(block, cfg[start:end], num_blocks[3], stride=2)
         
-        if dataset == 'imagenet':
-            self.avgpool = nn.AvgPool2d(7)
-        else:
-            self.avgpool = nn.AvgPool2d(4)
+        self.avgpool = nn.AvgPool2d(7)
         
         self.linear = nn.Linear(cfg[-1][-1], self.num_classes)
         
@@ -244,8 +234,6 @@ class PrunableResNet(nn.Module):
         #     for j in range(len(self.dependency[i])):
         #         print(self.dependency[i][j]['conv'])
         #         print(self.dependency[i][j]['bn'])
-        
-        
 
     def _make_layer(self, block, blocks_planes, num_blocks, stride):
         strides = [stride] + [1]*(num_blocks-1)
@@ -303,7 +291,7 @@ class PrunableResNet(nn.Module):
         return self.module_list, self.shortcutCB_list
         
 
-class ResNetCFG:
+class ResNetCFG_imagenet:
     def __init__(self):
         self.cfg18 = [[64], [64, 64], [64, 64], [128, 128], [128, 128], [256, 256], [256, 256], [512, 512], [512, 512]]
         self.cfg34 = [[64], [64, 64], [64, 64], [64, 64], [128, 128], [128, 128], [128, 128], [128, 128], [256, 256], \
@@ -432,47 +420,126 @@ class ResNetCFG:
                     count = 0
         return cfg
 
-def ResNet18(cfg=None, dataset = 'cifar10'):
+def ResNet18_imagenet(cfg=None):
     if cfg is None:
         # return ResNet(BasicBlock, [2, 2, 2, 2])
-        return PrunableResNet(PrunableBasicBlock, [2, 2, 2, 2], cfg=ResNetCFG().cfg18, dataset = dataset)
+        return PrunableResNet_imagenet(PrunableBasicBlock, [2, 2, 2, 2], cfg=ResNetCFG_imagenet().cfg18)
     else:
-        return PrunableResNet(PrunableBasicBlock, [2, 2, 2, 2], cfg=cfg, dataset = dataset)
+        return PrunableResNet_imagenet(PrunableBasicBlock, [2, 2, 2, 2], cfg=cfg)
 
-def ResNet34(cfg=None, dataset = 'cifar10'):
+def ResNet34_imagenet(cfg=None):
     if cfg is None:
         # return ResNet(BasicBlock, [3, 4, 6, 3])
-        return PrunableResNet(PrunableBasicBlock, [3, 4, 6, 3], cfg=ResNetCFG().cfg34, dataset = dataset)
+        return PrunableResNet_imagenet(PrunableBasicBlock, [3, 4, 6, 3], cfg=ResNetCFG_imagenet().cfg34)
     else:
-        return PrunableResNet(PrunableBasicBlock, [3, 4, 6, 3], cfg=cfg, dataset = dataset)
+        return PrunableResNet_imagenet(PrunableBasicBlock, [3, 4, 6, 3], cfg=cfg)
     
-def ResNet50(cfg=None, dataset = 'cifar10'):
+def ResNet50_imagenet(cfg=None):
     if cfg is None:
         # return ResNet(Bottleneck, [3, 4, 6, 3])
-        return PrunableResNet(PrunableBottleneck, [3, 4, 6, 3], cfg=ResNetCFG().cfg50, dataset = dataset)
+        return PrunableResNet_imagenet(PrunableBottleneck, [3, 4, 6, 3], cfg=ResNetCFG_imagenet().cfg50)
     else:
-        return PrunableResNet(PrunableBottleneck, [3, 4, 6, 3], cfg=cfg, dataset = dataset)
+        return PrunableResNet_imagenet(PrunableBottleneck, [3, 4, 6, 3], cfg=cfg)
     
-def ResNet101(cfg=None, dataset = 'cifar10'):
+def ResNet101_imagenet(cfg=None):
     if cfg is None:
         # return ResNet(Bottleneck, [3, 4, 23, 3])
-        return PrunableResNet(PrunableBottleneck, [3, 4, 23, 3], cfg=ResNetCFG().cfg101, dataset = dataset)
+        return PrunableResNet_imagenet(PrunableBottleneck, [3, 4, 23, 3], cfg=ResNetCFG_imagenet().cfg101)
     else:
-        return PrunableResNet(PrunableBottleneck, [3, 4, 23, 3], cfg=cfg, dataset = dataset)
+        return PrunableResNet_imagenet(PrunableBottleneck, [3, 4, 23, 3], cfg=cfg)
 
-def ResNet152(cfg=None, dataset = 'cifar10'):
+def ResNet152_imagenet(cfg=None):
     if cfg is None:
         # return ResNet(Bottleneck, [3, 8, 36, 3])
-        return PrunableResNet(PrunableBottleneck, [3, 8, 36, 3], cfg=ResNetCFG().cfg152, dataset = dataset)
+        return PrunableResNet_imagenet(PrunableBottleneck, [3, 8, 36, 3], cfg=ResNetCFG_imagenet().cfg152)
     else:
-        return PrunableResNet(PrunableBottleneck, [3, 8, 36, 3], cfg=cfg, dataset = dataset)
+        return PrunableResNet_imagenet(PrunableBottleneck, [3, 8, 36, 3], cfg=cfg)
 
-def test():
-    net = ResNet101()
-    
-    print(net)
-    
-    y = net(torch.randn(1, 3, 32, 32))
-    print(y.size())
+class ResNet_CIFAR(nn.Module):
+    def __init__(self, num_layers, num_classes, cfg=None):
+        print('[num_classes: %d, num_layers: %d]', num_classes, num_layers)
+        super(ResNet_CIFAR, self).__init__()
+        assert (num_layers-2)%6 == 0
+        _n = (num_layers-2)//6
+        if cfg is not None:
+            self.cfg = cfg
+        else:
+            cfg = self.cfg = [[16]] + [[16,16]]*_n + [[32,32]]*_n + [[64,64]]*_n  #这里假设self.cfg不会被原位修改(指例如self.cfg[1][0]=100)
+        self.num_classes = num_classes
+        self.dependency = []
+        self.dependency_list = []
+        self.in_planes = self.cfg[0][0]
 
-# test()
+        self.conv1 = nn.Conv2d(3, self.cfg[0][0], kernel_size=3, stride=1, padding=1, bias=False)
+        self.bn1 = nn.BatchNorm2d(self.cfg[0][0])
+
+        self.dependency_list.extend([{'conv':self.conv1, 'bn':self.bn1}])
+
+        self.layer1 = self._make_layer(self.cfg[1:1+_n],stride = 1)
+        self.layer2 = self._make_layer(self.cfg[1+_n:1+_n*2],stride = 2)
+        self.layer3 = self._make_layer(self.cfg[1+_n*2:1+_n*3],stride = 2)
+
+        self.avgpool = nn.AvgPool2d(8)
+        self.linear = nn.Linear(self.cfg[-1][-1], self.num_classes)
+
+    def _make_layer(self, cfg, stride = 1):
+        strides = [stride] + [1]*len(cfg)
+        layers = []
+        for i,planes in enumerate(cfg):
+            b = PrunableBasicBlock(self.in_planes, planes, strides[i])
+            layers.append(b)
+            self.in_planes = planes[-1]
+            self.dependency_list.extend(b.dependency_list)
+        # the following code is directly copied from the `PrunableResNet_imagenet`
+        tmp = []
+        for i in range(len(self.dependency_list)):
+            tmp.append(self.dependency_list[i])
+        self.dependency.append(tmp)
+        self.dependency_list.clear()
+            
+        return nn.Sequential(*layers)
+    
+    def forward(self, x):
+        out = F.relu(self.bn1(self.conv1(x)))
+        out = self.layer1(out)
+        out = self.layer2(out)
+        out = self.layer3(out)
+        out = self.avgpool(out)
+        out = out.view(out.size(0), -1)
+        out = self.linear(out)
+        return out
+
+    # the following code is directly copied from the `PrunableResNet_imagenet`
+    # module_list: 不包含shortcutCB的所有剩余的<Conv, BN>
+    # shortcutCB: 只包含shortcut中的<Conv, BN>
+    def get_module_list(self): # get the module_list that only contain CONV and BN, but not contain CONV and BN which is in shortcut
+        self.module_list = []
+        self.shortcutCB_list = []
+        CB = []
+        for name,module in self.named_modules():
+            if 'conv' in name:
+                CB.append(module)
+            elif isinstance(module, nn.Conv2d): # shortcut-CONV
+                CB.append(module)
+                
+            if 'bn' in name: 
+                CB.append(module)
+                self.module_list.append({"conv":CB[0],"bn":CB[1]})
+                CB.clear()
+            elif isinstance(module, nn.BatchNorm2d): # shortcut-BN
+                CB.append(module)
+                self.shortcutCB_list.append({"conv":CB[0],"bn":CB[1]})
+                CB.clear()
+                
+        return self.module_list, self.shortcutCB_list
+
+def PrunableResNet(num_layers, dataset, cfg=None):
+    '总的可剪枝残差网络生成入口'
+    assert dataset in ['imagenet','cifar10','cifar100']
+    if dataset == 'imagenet':
+        assert num_layers in [18,34,50,101,152]
+        return globals()['ResNet%d_imagenet'%num_layers](cfg)
+    else:
+        num_classes = _num_classes[dataset]
+        return ResNet(num_layers, num_classes, cfg)
+    

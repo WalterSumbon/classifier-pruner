@@ -16,11 +16,11 @@ from models import *
 from utils.datasets import * 
 from utils.utils import * 
 
-def test(model=None, testloader=None, batch_size=64):
+def test(model=None, testloader=None, batch_size=64, dataset = 'cifar10', root = './data'):
     # Data
     if testloader is None:
         nw = min([os.cpu_count(), batch_size if batch_size > 1 else 0, 8])  # number of workers
-        testloader = cifar10_test_dataset(batch_size=batch_size, nw=nw)
+        testloader = globals()[dataset+'_test_dataset'](root=root, batch_size=batch_size, nw=nw)
 
     # Model
     if model is None:
@@ -80,7 +80,8 @@ if __name__ == '__main__':
 
     parser.add_argument('--batch-size', type=int, default=128, help='size of each image batch')
     parser.add_argument('--device', default='', help='device id (i.e. 0 or 0,1) or cpu')
-
+    parser.add_argument('--dataset', type=str, default='cifar10',help='training dataset (default: cifar10)')
+    parser.add_argument('--root', type=str, default='./data',help='root path of training dataset (default: ./data)')
     opt = parser.parse_args()
     print(opt)
 

@@ -23,7 +23,8 @@ from terminaltables import AsciiTable
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--model-name', type=str, default='ResNet18', help='model name')
+    # parser.add_argument('--model-name', type=str, default='ResNet18', help='model name')
+    parser.add_argument('--layers', type=int, default=18, help='the number of layers')  # new option
     parser.add_argument('--checkpoint', '-ckpt', type=str, default='ResNet18/checkpoint/last.pth', help='checkpoint path')
     parser.add_argument('--saved-dir', type=str, default='pruned_model', help='pruned_model saved directory')
     parser.add_argument('--percent', type=float, default=0.5, help='channel prune percent')
@@ -42,20 +43,21 @@ if __name__ == '__main__':
     
     # get original model
     checkpoint = opt.checkpoint
-    model_name = opt.model_name
+    model_name = 'ResNet%d_'%opt.layers + opt.dataset
     dataset = opt.dataset
+
     assert os.path.isfile(checkpoint), 'Error: no %s file found!'%checkpoint
     if checkpoint.endswith('.pth'): # only load weights from file
-        model = globals()[opt.model_name](dataset = dataset)
+        model = PrunableResNet(opt.layers, dataset)
         model.load_state_dict(torch.load(checkpoint)['model'])
     else: # load network architecture and weights from file 
         model = torch.load(checkpoint)
 
-    resnet_cfg = ResNetCFG()
+    resnet_cfg = ResNetCFG_imagenet()
     model_cfg = resnet_cfg.get_cfg(model)
         
     if isinstance(model, ResNet): # convert ResNet model to PrunableResNet model
-        prunable_model = globals()[opt.model_name](model_cfg, dataset)
+        prunable_model = PrunableResNet(opt.layers, dataset, model_cfg)
         
         for src,dest in zip(model.parameters(),prunable_model.parameters()):
             dest.data.copy_(src.data)
@@ -210,7 +212,7 @@ if __name__ == '__main__':
     
     pruned_model_cfg = resnet_cfg.convert_list_to_cfg(cfg_remain) # 剪枝后模型的cfg
     print(pruned_model_cfg)
-    pruned_model = globals()[opt.model_name](pruned_model_cfg, dataset) # 通过cfg生成剪枝后的模型
+    pruned_model = PrunableResNet(opt.layers, dataset, pruned_model_cfg) # 通过cfg生成剪枝后的模型
     
     pruned_model = pruned_model.to(device)
     
@@ -327,8 +329,8 @@ if __name__ == '__main__':
     
     if not os.path.isdir(opt.saved_dir):
         os.mkdir(opt.saved_dir)
-    cfg_saved_path = "pruned_percent-%g_%s.cfg"%(opt.percent,opt.model_name)
-    weights_saved_path = "pruned_percent-%g_%s.pth"%(opt.percent,opt.model_name)
+    cfg_saved_path = "pruned_percent-%g_%s.cfg"%(opt.percent,model_name)
+    weights_saved_path = "pruned_percent-%g_%s.pth"%(opt.percent,model_name)
 
     cfg_saved_path = os.path.join(opt.saved_dir, cfg_saved_path)
     weights_saved_path = os.path.join(opt.saved_dir, weights_saved_path)

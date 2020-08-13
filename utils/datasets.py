@@ -32,9 +32,6 @@ def cifar10_test_dataset(root='./data', batch_size=128, nw=2):
 
     return testloader
 
-def cifar10_class():
-    return ('plane', 'car', 'bird', 'cat', 'deer',
-               'dog', 'frog', 'horse', 'ship', 'truck')
 
 def cifar100_train_dataset(root='./data', batch_size=128, nw=2):
     transform_train = transforms.Compose([
@@ -64,8 +61,6 @@ def cifar100_test_dataset(root='./data', batch_size=128, nw=2):
 
     return testloader
 
-def cifar100_class():
-    pass
 
 def imagenet_train_dataset(root='./data', batch_size=128, nw=2):
     transform = transforms.Compose([
@@ -95,3 +90,10 @@ def imagenet_test_dataset(root='./data', batch_size=128, nw=2):
     test_loader = torch.utils.data.DataLoader(
         test, batch_size=batch_size, shuffle=True, num_workers=nw)
     return test_loader
+
+
+def cifar10_class():
+    return ('plane', 'car', 'bird', 'cat', 'deer',
+               'dog', 'frog', 'horse', 'ship', 'truck')
+def cifar100_class():
+    pass
