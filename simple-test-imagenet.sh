@@ -9,7 +9,7 @@ source activate ns
 
 device=0
 prefix=exp_slim_ResNet18
-model=ResNet18
+layers=20
 dataset=imagenet
 root=/home/cs/bhuagroup/imagenet/
 epochs=5
@@ -22,7 +22,7 @@ sp_lr=0.01
 
 echo "device=${device}"
 echo "prefix=${prefix}"
-echo "model=${model}"
+echo "layers=${layers}"
 echo "epochs=${epochs}"
 echo "dataset=${dataset}"
 echo "root=${root}"
@@ -37,7 +37,7 @@ mkdir -p ${prefix}/baseline
 
 echo "################ start baseline"
 CUDA_VISIBLE_DEVICES=${device} python train.py \
-    --model-name ${model} \
+    --layers ${layers} \
     -ckpt-dir ${prefix}/baseline/checkpoint \
     -log ${prefix}/baseline/runs \
     --epochs ${epochs} \
@@ -56,7 +56,7 @@ echo "################ start sp"
 CUDA_VISIBLE_DEVICES=${device} python train.py \
     -sr \
     --s ${s} \
-    --model-name ${model} \
+    --layers ${layers} \
     -ckpt-dir ${prefix}/sp/checkpoint \
     -ckpt ${prefix}/baseline/checkpoint/last.pth \
     -log ${prefix}/sp/runs \
@@ -75,7 +75,7 @@ do
 
     echo "################ start prune"
     CUDA_VISIBLE_DEVICES=${device} python ${prune_mode} \
-        --model-name ${model} \
+        --layers ${layers} \
         -ckpt ${prefix}/sp/checkpoint/last.pth \
         --saved-dir ${prefix}/percent-${percent}/pruned_model \
         --dataset ${dataset} \
@@ -86,10 +86,10 @@ do
     # mkdir -p ${prefix}/percent-${percent}/finetune_lr-0.1
 
     # CUDA_VISIBLE_DEVICES=${device} python train.py \
-    #     --model-name ${model} \
+    #     --layers ${layers} \
     #     -ckpt-dir ${prefix}/percent-${percent}/finetune_lr-0.1/checkpoint \
-    #     --cfg ${prefix}/percent-${percent}/pruned_model/pruned_percent-${percent}_${model}.cfg \
-    #     -ckpt ${prefix}/percent-${percent}/pruned_model/pruned_percent-${percent}_${model}.pth \
+    #     --cfg ${prefix}/percent-${percent}/pruned_model/pruned_percent-${percent}_${layers}.cfg \
+    #     -ckpt ${prefix}/percent-${percent}/pruned_model/pruned_percent-${percent}_${layers}.pth \
     #     -log ${prefix}/percent-${percent}/finetune_lr-0.1/runs \
     #     --lr 0.1 \
     #     --epochs ${epochs} \
@@ -101,10 +101,10 @@ do
     mkdir -p ${prefix}/percent-${percent}/finetune_lr-0.01
 
     CUDA_VISIBLE_DEVICES=${device} python train.py \
-        --model-name ${model} \
+        --layers ${layers} \
         -ckpt-dir ${prefix}/percent-${percent}/finetune_lr-0.01/checkpoint \
-        --cfg ${prefix}/percent-${percent}/pruned_model/pruned_percent-${percent}_${model}.cfg \
-        -ckpt ${prefix}/percent-${percent}/pruned_model/pruned_percent-${percent}_${model}.pth \
+        --cfg ${prefix}/percent-${percent}/pruned_model/pruned_percent-${percent}_${layers}.cfg \
+        -ckpt ${prefix}/percent-${percent}/pruned_model/pruned_percent-${percent}_${layers}.pth \
         -log ${prefix}/percent-${percent}/finetune_lr-0.01/runs \
         --lr 0.01 \
         --epochs ${epochs} \
@@ -116,10 +116,10 @@ do
     # mkdir -p ${prefix}/percent-${percent}/from_scratch
 
     # CUDA_VISIBLE_DEVICES=${device} python train.py \
-    #     --model-name ${model} \
+    #     --layers ${layers} \
     #     -ckpt-dir ${prefix}/percent-${percent}/from_scratch/checkpoint \
-    #     --cfg ${prefix}/percent-${percent}/pruned_model/pruned_percent-${percent}_${model}.cfg \
-    #     -ckpt ${prefix}/percent-${percent}/pruned_model/pruned_percent-${percent}_${model}.pth \
+    #     --cfg ${prefix}/percent-${percent}/pruned_model/pruned_percent-${percent}_${layers}.cfg \
+    #     -ckpt ${prefix}/percent-${percent}/pruned_model/pruned_percent-${percent}_${layers}.pth \
     #     -log ${prefix}/percent-${percent}/from_scratch/runs \
     #     --from-scratch \
     #     --epochs ${epochs} \
